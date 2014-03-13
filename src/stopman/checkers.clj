@@ -32,6 +32,32 @@
            (instance? org.jrubyparser.ast.FCallNode node))
        (= (.getName node) "send")))
 
+(defn- eq-symbol? [n sym]
+  (and (instance? org.jrubyparser.ast.SymbolNode n)
+       (= (.getName n) sym)))
+
+(defn- eq-hash-key? [n f]
+  (let [hash-keys (map first (partition 2 (rest (rest (parser/make-tree n)))))]
+    (some f hash-keys)))
+
+(defn- get-name [n]
+  (.getName n))
+
+(defn- get-args [n]
+  (rest (parser/make-tree (.getArgs n))))
+
+(defn skip-filter? [node]
+  (and (instance? org.jrubyparser.ast.FCallNode node)
+       (= (get-name node) "skip_before_filter")
+       (let [args (get-args node)]
+         (and (some #(eq-symbol? (first args) %)
+                    ["login_required"
+                     "authenticate_user!"
+                     "require_user"
+                     "verify_authenticity_token"])
+              (eq-hash-key? (first (next args))
+                            #(eq-symbol? % "except"))))))
+
 (defn run-checks [rb & check-pairs]
   (let [root (parser/parse-tree rb)]
     (loop [check-pairs check-pairs
@@ -46,4 +72,5 @@
   (run-checks rb
               [ssl-verify-none? :ssl-verify]
               [object-send? :send]
+              [skip-filter? :skip-filter]
               ))

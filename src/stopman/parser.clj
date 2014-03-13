@@ -13,5 +13,8 @@
         config (ParserConfiguration. 0 CompatVersion/RUBY1_9)]
     (.parse parser "" (StringReader. rb) config)))
 
+(defn make-tree [root]
+  (tree-seq children? children root))
+
 (defn parse-tree [rb]
-  (tree-seq children? children (parse-ruby rb)))
+  (make-tree (parse-ruby rb)))
