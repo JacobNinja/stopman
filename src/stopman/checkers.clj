@@ -27,8 +27,9 @@
        (= (.. node getLeftNode getName) "OpenSSL")
        (= (.getName node) "VERIFY_NONE")))
 
-(defn ssl-verify-none [node]
-  (filter-nodes node ssl-verify-none?))
+(defn object-send? [node]
+  (and (instance? org.jrubyparser.ast.CallNode node)
+       (= (.getName node) "send")))
 
 (defn run-checks [rb & check-pairs]
   (let [root (parser/parse-tree rb)]
@@ -38,8 +39,10 @@
         r
         (let [[check check-type] (first check-pairs)]
           (recur (rest check-pairs)
-                 (concat r (map (serialize rb check-type) (check root)))))))))
+                 (concat r (map (serialize rb check-type) (filter-nodes root check)))))))))
 
 (defn check [rb]
   (run-checks rb
-              [ssl-verify-none :ssl-verify]))
+              [ssl-verify-none? :ssl-verify]
+              [object-send? :send]
+              ))
