@@ -40,3 +40,15 @@
                   {:range [0 50]
                    :type :skip-filter})
     ))
+
+(deftest unsafe-params
+  (testing "backticks"
+    (check-result "`#{params[:foo]}`"
+                  {:src "`#{params[:foo]}" ; FIXME: methods that wrap arguments
+                   :range [0 16]
+                   :type :unsafe-command}))
+  (testing "system"
+    (check-result "system(params[:foo])"
+                  {:range [0 20]
+                   :type :unsafe-command})
+    ))

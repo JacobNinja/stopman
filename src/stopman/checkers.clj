@@ -58,6 +58,21 @@
               (eq-hash-key? (first (next args))
                             #(eq-symbol? % "except"))))))
 
+(defn- call-node? [n]
+  (or (instance? org.jrubyparser.ast.VCallNode n)
+      (instance? org.jrubyparser.ast.FCallNode n)))
+
+(defn eq-method-name? [n method-name]
+  (and (call-node? n)
+       (= (get-name n) method-name)))
+
+(defn unsafe-command? [node]
+  (and (or (instance? org.jrubyparser.ast.DXStrNode node)
+           (and (instance? org.jrubyparser.ast.FCallNode node)
+                (eq-method-name? node "system")))
+       (some #(eq-method-name? % "params")
+             (filter-nodes (rest (parser/make-tree node)) call-node?))))
+
 (defn run-checks [rb & check-pairs]
   (let [root (parser/parse-tree rb)]
     (loop [check-pairs check-pairs
@@ -73,4 +88,5 @@
               [ssl-verify-none? :ssl-verify]
               [object-send? :send]
               [skip-filter? :skip-filter]
+              [unsafe-command? :unsafe-command]
               ))
