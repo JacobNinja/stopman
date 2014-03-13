@@ -52,3 +52,22 @@
                   {:range [0 20]
                    :type :unsafe-command})
     ))
+
+(deftest unsafe-deserialization
+  (testing "yaml"
+    (check-result "YAML.load(foo)"
+                  {:range [0 14]
+                   :type :unsafe-deserialization})
+    (check-result "YAML.load_documents(foo)"
+                  {:range [0 24]
+                   :type :unsafe-deserialization})
+    (check-result "YAML.load_stream(foo)"
+                  {:range [0 21]
+                   :type :unsafe-deserialization})
+    (check-result "YAML.parse_documents(foo)"
+                  {:range [0 25]
+                   :type :unsafe-deserialization})
+    (check-result "YAML.parse_stream(foo)"
+                  {:range [0 22]
+                   :type :unsafe-deserialization}))
+  )

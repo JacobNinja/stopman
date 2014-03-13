@@ -46,6 +46,20 @@
 (defn- get-args [n]
   (rest (parser/make-tree (.getArgs n))))
 
+(defn- call-node? [n]
+  (or (instance? org.jrubyparser.ast.VCallNode n)
+      (instance? org.jrubyparser.ast.FCallNode n)
+      (instance? org.jrubyparser.ast.CallNode n)))
+
+(defn eq-receiver? [n receiver]
+  (= receiver (get-name (.getReceiver n))))
+
+(defn call-with-receiver-node? [n]
+  (instance? org.jrubyparser.ast.CallNode n))
+
+(defn eq-method-name? [n method-name]
+  (= (get-name n) method-name))
+
 (defn skip-filter? [node]
   (and (instance? org.jrubyparser.ast.FCallNode node)
        (= (get-name node) "skip_before_filter")
@@ -58,20 +72,18 @@
               (eq-hash-key? (first (next args))
                             #(eq-symbol? % "except"))))))
 
-(defn- call-node? [n]
-  (or (instance? org.jrubyparser.ast.VCallNode n)
-      (instance? org.jrubyparser.ast.FCallNode n)))
-
-(defn eq-method-name? [n method-name]
-  (and (call-node? n)
-       (= (get-name n) method-name)))
-
 (defn unsafe-command? [node]
   (and (or (instance? org.jrubyparser.ast.DXStrNode node)
            (and (instance? org.jrubyparser.ast.FCallNode node)
                 (eq-method-name? node "system")))
        (some #(eq-method-name? % "params")
              (filter-nodes (rest (parser/make-tree node)) call-node?))))
+
+(defn unsafe-deserialization? [node]
+  (and (call-with-receiver-node? node)
+       (eq-receiver? node "YAML")
+       (some #(eq-method-name? node %)
+             ["load" "load_documents" "load_stream" "parse_documents" "parse_stream"])))
 
 (defn run-checks [rb & check-pairs]
   (let [root (parser/parse-tree rb)]
@@ -89,4 +101,5 @@
               [object-send? :send]
               [skip-filter? :skip-filter]
               [unsafe-command? :unsafe-command]
+              [unsafe-deserialization? :unsafe-deserialization]
               ))
