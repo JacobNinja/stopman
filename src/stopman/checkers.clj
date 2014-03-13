@@ -28,7 +28,8 @@
        (= (.getName node) "VERIFY_NONE")))
 
 (defn object-send? [node]
-  (and (instance? org.jrubyparser.ast.CallNode node)
+  (and (or (instance? org.jrubyparser.ast.CallNode node)
+           (instance? org.jrubyparser.ast.FCallNode node))
        (= (.getName node) "send")))
 
 (defn run-checks [rb & check-pairs]

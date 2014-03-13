@@ -18,4 +18,10 @@
     (check-result "Object.send(:foo)"
                   {:src "Object.send(:foo)"
                    :range [0 17]
-                   :type :send})))
+                   :type :send}))
+  (testing "send"
+    (check-result "send(:foo)"
+                  {:src "send(:foo)"
+                   :range [0 10]
+                   :type :send}))
+  )
