@@ -91,10 +91,14 @@
 (defn unsafe-csv? [node]
   (eq-method-call-with-receiver? node "CSV" "load"))
 
+(defn unsafe-marshal? [node]
+  (eq-method-call-with-receiver? node "Marshal" "load" "restore"))
+
 (defn unsafe-deserialization? [node]
   (and (call-with-receiver-node? node)
        (or (unsafe-yaml? node)
-           (unsafe-csv? node))))
+           (unsafe-csv? node)
+           (unsafe-marshal? node))))
 
 (defn run-checks [rb & check-pairs]
   (let [root (parser/parse-tree rb)]

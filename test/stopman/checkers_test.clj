@@ -74,4 +74,11 @@
     (check-result "CSV.load(foo)"
                   {:range [0 13]
                    :type :unsafe-deserialization}))
+  (testing "marshal"
+    (check-result "Marshal.load(foo)"
+                  {:range [0 17]
+                   :type :unsafe-deserialization})
+    (check-result "Marshal.restore(foo)"
+                  {:range [0 20]
+                   :type :unsafe-deserialization}))
   )
