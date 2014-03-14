@@ -31,7 +31,8 @@
     (some f hash-keys)))
 
 (defn- get-name [n]
-  (.getName n))
+  (when (instance? org.jrubyparser.ast.INameNode n)
+    (.getName n)))
 
 (defn- get-args [n]
   (rest (parser/make-tree (.getArgs n))))
@@ -51,7 +52,8 @@
   (= (get-name n) method-name))
 
 (defn eq-method-call-with-receiver? [node receiver & method-names]
-  (and (eq-receiver? node receiver)
+  (and (call-with-receiver-node? node)
+       (eq-receiver? node receiver)
        (some #(eq-method-name? node %) method-names)))
 
 (defn- ssl-verify-none? [node]
@@ -100,6 +102,10 @@
            (unsafe-csv? node)
            (unsafe-marshal? node))))
 
+(defn unsafe-reflection? [node]
+  (and (call-with-receiver-node? node)
+       (#{"constantize" "safe_constantize"} (get-name node))))
+
 (defn run-checks [rb & check-pairs]
   (let [root (parser/parse-tree rb)]
     (loop [check-pairs check-pairs
@@ -117,4 +123,5 @@
               [skip-filter? :skip-filter]
               [unsafe-command? :unsafe-command]
               [unsafe-deserialization? :unsafe-deserialization]
+              [unsafe-reflection? :unsafe-reflection]
               ))

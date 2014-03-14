@@ -82,3 +82,14 @@
                   {:range [0 20]
                    :type :unsafe-deserialization}))
   )
+
+(deftest unsafe-reflection
+  (testing "constants"
+    (check-result "foo.constantize"
+                  {:range [0 15]
+                   :type :unsafe-reflection})
+    (check-result "foo.safe_constantize"
+                  {:range [0 20]
+                   :type :unsafe-reflection})
+  )
+  )
