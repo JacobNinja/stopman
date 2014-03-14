@@ -102,9 +102,17 @@
            (unsafe-csv? node)
            (unsafe-marshal? node))))
 
-(defn unsafe-reflection? [node]
+(defn unsafe-constantize [node]
   (and (call-with-receiver-node? node)
        (#{"constantize" "safe_constantize"} (get-name node))))
+
+(defn unsafe-get-constant [node]
+  (and (call-node? node)
+       (#{"const_get" "qualified_const_get"} (get-name node))))
+
+(defn unsafe-reflection? [node]
+  (or (unsafe-constantize node)
+      (unsafe-get-constant node)))
 
 (defn run-checks [rb & check-pairs]
   (let [root (parser/parse-tree rb)]

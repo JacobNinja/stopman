@@ -91,5 +91,11 @@
     (check-result "foo.safe_constantize"
                   {:range [0 20]
                    :type :unsafe-reflection})
-  )
+    (check-result "const_get(foo)"
+                  {:range [0 14]
+                   :type :unsafe-reflection})
+    (check-result "qualified_const_get(foo)"
+                  {:range [0 24]
+                   :type :unsafe-reflection})
+    )
   )
