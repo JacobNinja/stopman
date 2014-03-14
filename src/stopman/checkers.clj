@@ -22,16 +22,6 @@
        :range (line-range n)
        :type type})))
 
-(defn- ssl-verify-none? [node]
-  (and (instance? org.jrubyparser.ast.Colon2ConstNode node)
-       (= (.. node getLeftNode getName) "OpenSSL")
-       (= (.getName node) "VERIFY_NONE")))
-
-(defn object-send? [node]
-  (and (or (instance? org.jrubyparser.ast.CallNode node)
-           (instance? org.jrubyparser.ast.FCallNode node))
-       (= (.getName node) "send")))
-
 (defn- eq-symbol? [n sym]
   (and (instance? org.jrubyparser.ast.SymbolNode n)
        (= (.getName n) sym)))
@@ -59,6 +49,16 @@
 
 (defn eq-method-name? [n method-name]
   (= (get-name n) method-name))
+
+(defn- ssl-verify-none? [node]
+  (and (instance? org.jrubyparser.ast.Colon2ConstNode node)
+       (= (.. node getLeftNode getName) "OpenSSL")
+       (eq-method-name? node "VERIFY_NONE")))
+
+(defn object-send? [node]
+  (and (or (instance? org.jrubyparser.ast.CallNode node)
+           (instance? org.jrubyparser.ast.FCallNode node))
+       (eq-method-name? node "send")))
 
 (defn skip-filter? [node]
   (and (instance? org.jrubyparser.ast.FCallNode node)
