@@ -70,4 +70,8 @@
     (check-result "YAML.parse_stream(foo)"
                   {:range [0 22]
                    :type :unsafe-deserialization}))
+  (testing "csv"
+    (check-result "CSV.load(foo)"
+                  {:range [0 13]
+                   :type :unsafe-deserialization}))
   )
