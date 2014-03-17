@@ -42,16 +42,17 @@
     ))
 
 (deftest unsafe-params
-  (testing "backticks"
-    (check-result "`#{params[:foo]}`"
-                  {:src "`#{params[:foo]}" ; FIXME: methods that wrap arguments
-                   :range [0 16]
-                   :type :unsafe-command}))
-  (testing "system"
-    (check-result "system(params[:foo])"
-                  {:range [0 20]
-                   :type :unsafe-command})
-    ))
+  (binding [checkers/*unsafe-variables* #{"foo"}]
+    (testing "backticks"
+      (check-result "`#{foo}`"
+                    {:src "`#{foo}" ; FIXME: methods that wrap arguments
+                     :range [0 7]
+                     :type :unsafe-command}))
+    (testing "system"
+      (check-result "system(foo)"
+                    {:range [0 11]
+                     :type :unsafe-command})
+    )))
 
 (deftest unsafe-deserialization
   (testing "yaml"

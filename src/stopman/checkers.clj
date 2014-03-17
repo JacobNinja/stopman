@@ -1,6 +1,8 @@
 (ns stopman.checkers
   (:require [stopman.parser :as parser]))
 
+(def ^:dynamic *unsafe-variables* #{"params"})
+
 (defn- filter-nodes [root f]
   (loop [tree (parser/make-tree root)]
     (cond (empty? tree) '()
@@ -104,7 +106,7 @@
   (and (or (instance? org.jrubyparser.ast.DXStrNode node)
            (and (instance? org.jrubyparser.ast.FCallNode node)
                 (eq-method-name? node "system")))
-       (some #(eq-method-name? % "params")
+       (some #(*unsafe-variables* (get-name %))
              (filter-nodes (rest (parser/make-tree node)) call-node?))))
 
 (defn unsafe-yaml? [node]
