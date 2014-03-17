@@ -99,3 +99,12 @@
                    :type :unsafe-reflection})
     )
   )
+
+(deftest regex
+  (testing "validation"
+    (check-result "validates_format_of :foo, :with => /^\\w$/"
+                  {:src "validates_format_of :foo, :with => /^\\w$" ; FIXME methods that wrap args
+                   :range [0 40]
+                   :type :validation-regex})
+    )
+  )

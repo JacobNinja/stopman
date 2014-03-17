@@ -2,7 +2,7 @@
   (:require [stopman.parser :as parser]))
 
 (defn- filter-nodes [root f]
-  (loop [tree root]
+  (loop [tree (parser/make-tree root)]
     (cond (empty? tree) '()
           (f (first tree)) (cons (first tree) (filter-nodes (rest tree) f))
           (seq? (first tree)) (concat (filter-nodes (first tree) f)
@@ -22,20 +22,36 @@
        :range (line-range n)
        :type type})))
 
-(defn- eq-symbol? [n sym]
-  (and (instance? org.jrubyparser.ast.SymbolNode n)
-       (= (.getName n) sym)))
-
-(defn- eq-hash-key? [n f]
-  (let [hash-keys (map first (partition 2 (rest (rest (parser/make-tree n)))))]
-    (some f hash-keys)))
-
 (defn- get-name [n]
   (when (instance? org.jrubyparser.ast.INameNode n)
     (.getName n)))
 
 (defn- get-args [n]
   (rest (parser/make-tree (.getArgs n))))
+
+(defn- hash-node? [n]
+  (instance? org.jrubyparser.ast.HashNode n))
+
+(defn- get-hash-arg [n]
+  (first (filter-nodes (get-args n) hash-node?)))
+
+(defn- eq-symbol? [n sym]
+  (and (instance? org.jrubyparser.ast.SymbolNode n)
+       (= (get-name n) sym)))
+
+(defn get-hash-key-values [node]
+  (partition 2 (rest (rest (parser/make-tree node)))))
+
+(defn get-hash-key-value [node key]
+  (first (filter #(= key (get-name (first %)))
+                 (get-hash-key-values node))))
+
+(defn get-value [node]
+  (.getValue node))
+
+(defn- eq-hash-key? [n f]
+  (let [hash-keys (map first (get-hash-key-values n))]
+    (some f hash-keys)))
 
 (defn- call-node? [n]
   (or (instance? org.jrubyparser.ast.VCallNode n)
@@ -47,6 +63,12 @@
 
 (defn call-with-receiver-node? [n]
   (instance? org.jrubyparser.ast.CallNode n))
+
+(defn call-without-receiver-node? [n]
+  (instance? org.jrubyparser.ast.FCallNode n))
+
+(defn regex-node? [n]
+  (instance? org.jrubyparser.ast.RegexpNode n))
 
 (defn eq-method-name? [n method-name]
   (= (get-name n) method-name))
@@ -114,6 +136,13 @@
   (or (unsafe-constantize node)
       (unsafe-get-constant node)))
 
+(defn unsafe-validation-regex? [node]
+  (and (call-node? node)
+       (#{"validate" "validates_format_of"} (get-name node))
+       (when-let [with-option (get-hash-key-value (get-hash-arg node) "with")]
+         (and (regex-node? (second with-option))
+              (re-find #"^\^(?:.*?)\$$" (get-value (second with-option)))))))
+
 (defn run-checks [rb & check-pairs]
   (let [root (parser/parse-tree rb)]
     (loop [check-pairs check-pairs
@@ -132,4 +161,5 @@
               [unsafe-command? :unsafe-command]
               [unsafe-deserialization? :unsafe-deserialization]
               [unsafe-reflection? :unsafe-reflection]
+              [unsafe-validation-regex? :validation-regex]
               ))

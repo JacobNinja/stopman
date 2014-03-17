@@ -14,7 +14,9 @@
     (.parse parser "" (StringReader. rb) config)))
 
 (defn make-tree [root]
-  (tree-seq children? children root))
+  (if-not (seq? root)
+    (tree-seq children? children root)
+    root))
 
 (defn parse-tree [rb]
   (make-tree (parse-ruby rb)))
