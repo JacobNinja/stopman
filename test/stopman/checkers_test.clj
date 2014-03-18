@@ -8,9 +8,9 @@
 
 (deftest ssl-verify-check
   (testing "ssl verify none"
-    (check-result "OpenSSL::VERIFY_NONE"
-                  {:range [0 20]
-                   :type :ssl-verify})))
+    (check-result "self.verify_mode = OpenSSL::VERIFY_NONE"
+                  {:range [0 39]
+                   :type :ssl-verify-none})))
 
 (deftest object-send
   (testing "Object.send"

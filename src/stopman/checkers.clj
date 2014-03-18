@@ -7,9 +7,12 @@
   (some *unsafe-variables* (map get-name nodes)))
 
 (defn- ssl-verify-none? [node]
-  (and (instance? org.jrubyparser.ast.Colon2ConstNode node)
-       (= (.. node getLeftNode getName) "OpenSSL")
-       (eq-method-name? node "VERIFY_NONE")))
+  (and (attr-assign-node? node)
+       (eq-method-name? node "verify_mode=")
+       (let [first-arg (first (get-args node))]
+         (and (instance? org.jrubyparser.ast.Colon2ConstNode first-arg)
+              (= (.. first-arg getLeftNode getName) "OpenSSL")
+              (eq-method-name? first-arg "VERIFY_NONE")))))
 
 (defn object-send? [node]
   (and (or (instance? org.jrubyparser.ast.CallNode node)
@@ -85,7 +88,7 @@
 
 (defn check [rb]
   (run-checks rb
-              [ssl-verify-none? :ssl-verify]
+              [ssl-verify-none? :ssl-verify-none]
               [object-send? :send]
               [skip-filter? :skip-filter]
               [unsafe-command? :unsafe-command]

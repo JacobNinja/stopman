@@ -60,6 +60,9 @@
 (defn eq-receiver? [n receiver]
   (= receiver (get-name (.getReceiver n))))
 
+(defn attr-assign-node? [n]
+  (instance? org.jrubyparser.ast.AttrAssignNode n))
+
 (defn call-with-receiver-node? [n]
   (instance? org.jrubyparser.ast.CallNode n))
 
