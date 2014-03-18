@@ -3,6 +3,9 @@
 
 (def ^:dynamic *unsafe-variables* #{"params"})
 
+(defn unsafe-variable? [nodes]
+  (some *unsafe-variables* (map get-name nodes)))
+
 (defn- ssl-verify-none? [node]
   (and (instance? org.jrubyparser.ast.Colon2ConstNode node)
        (= (.. node getLeftNode getName) "OpenSSL")
@@ -33,12 +36,14 @@
              (filter-nodes (rest (make-tree node)) call-node?))))
 
 (defn unsafe-yaml? [node]
-  (eq-method-call-with-receiver? node
+  (and (eq-method-call-with-receiver? node
                                  "YAML"
-                                 "load" "load_documents" "load_stream" "parse_documents" "parse_stream"))
+                                 "load" "load_documents" "load_stream" "parse_documents" "parse_stream")
+       (unsafe-variable? (get-args node))))
 
 (defn unsafe-csv? [node]
-  (eq-method-call-with-receiver? node "CSV" "load"))
+  (and (eq-method-call-with-receiver? node "CSV" "load")
+       (unsafe-variable? (get-args node))))
 
 (defn unsafe-marshal? [node]
   (eq-method-call-with-receiver? node "Marshal" "load" "restore"))

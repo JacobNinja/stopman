@@ -55,34 +55,35 @@
     )))
 
 (deftest unsafe-deserialization
-  (testing "yaml"
-    (check-result "YAML.load(foo)"
-                  {:range [0 14]
-                   :type :unsafe-deserialization})
-    (check-result "YAML.load_documents(foo)"
-                  {:range [0 24]
-                   :type :unsafe-deserialization})
-    (check-result "YAML.load_stream(foo)"
-                  {:range [0 21]
-                   :type :unsafe-deserialization})
-    (check-result "YAML.parse_documents(foo)"
-                  {:range [0 25]
-                   :type :unsafe-deserialization})
-    (check-result "YAML.parse_stream(foo)"
-                  {:range [0 22]
-                   :type :unsafe-deserialization}))
-  (testing "csv"
-    (check-result "CSV.load(foo)"
-                  {:range [0 13]
-                   :type :unsafe-deserialization}))
-  (testing "marshal"
-    (check-result "Marshal.load(foo)"
-                  {:range [0 17]
-                   :type :unsafe-deserialization})
-    (check-result "Marshal.restore(foo)"
-                  {:range [0 20]
-                   :type :unsafe-deserialization}))
-  )
+  (binding [checkers/*unsafe-variables* #{"foo"}]
+    (testing "yaml"
+      (check-result "YAML.load(foo)"
+                    {:range [0 14]
+                     :type :unsafe-deserialization})
+      (check-result "YAML.load_documents(foo)"
+                    {:range [0 24]
+                     :type :unsafe-deserialization})
+      (check-result "YAML.load_stream(foo)"
+                    {:range [0 21]
+                     :type :unsafe-deserialization})
+      (check-result "YAML.parse_documents(foo)"
+                    {:range [0 25]
+                     :type :unsafe-deserialization})
+      (check-result "YAML.parse_stream(foo)"
+                    {:range [0 22]
+                     :type :unsafe-deserialization}))
+    (testing "csv"
+      (check-result "CSV.load(foo)"
+                    {:range [0 13]
+                     :type :unsafe-deserialization}))
+    (testing "marshal"
+      (check-result "Marshal.load(foo)"
+                    {:range [0 17]
+                     :type :unsafe-deserialization})
+      (check-result "Marshal.restore(foo)"
+                    {:range [0 20]
+                     :type :unsafe-deserialization}))
+  ))
 
 (deftest unsafe-reflection
   (testing "constants"
