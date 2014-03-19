@@ -15,20 +15,19 @@
               (eq-method-name? first-arg "VERIFY_NONE")))))
 
 (defn object-send? [node]
-  (and (or (instance? org.jrubyparser.ast.CallNode node)
-           (instance? org.jrubyparser.ast.FCallNode node))
+  (and (call-node? node)
        (eq-method-name? node "send")))
 
 (defn skip-filter? [node]
   (and (instance? org.jrubyparser.ast.FCallNode node)
-       (= (get-name node) "skip_before_filter")
+       (eq-method-name? node "skip_before_filter")
        (let [args (get-args node)]
          (and (some #(eq-symbol? (first args) %)
                     ["login_required"
                      "authenticate_user!"
                      "require_user"
                      "verify_authenticity_token"])
-              (eq-hash-key? (first (next args))
+              (eq-hash-key? (second args)
                             #(eq-symbol? % "except"))))))
 
 (defn unsafe-command? [node]
